@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Dynamic PayNow QR Code Generator</title>
+    <style>
+        body { font-family: -apple-system, Arial, sans-serif; max-width: 500px; margin: 50px auto; text-align: center; padding: 0 16px; }
+        h2 { margin-bottom: 24px; }
+        input, button { padding: 10px; margin: 8px; width: 80%; font-size: 14px; box-sizing: border-box; }
+        button { cursor: pointer; background: #111; color: #fff; border: 0; border-radius: 4px; }
+        button:disabled { background: #888; cursor: not-allowed; }
+        img { margin-top: 20px; border: 1px solid #ccc; padding: 10px; max-width: 100%; }
+        .error { color: #c00; }
+        .ok { color: #080; }
+        label { display: block; text-align: left; width: 80%; margin: 8px auto 0; font-size: 12px; color: #555; }
+    </style>
+</head>
+<body>
+    <h2>Generate PayNow QR Code</h2>
+
+    <label for="type">Recipient type</label>
+    <select id="type" style="padding:10px;margin:8px;width:80%;">
+        <option value="UEN">UEN (company)</option>
+        <option value="MOBILE">Mobile (PayNow)</option>
+    </select>
+
+    <label for="recipient">UEN or mobile number</label>
+    <input type="text" id="recipient" placeholder="e.g. 201912345C or +6591234567" value="201912345C">
+
+    <label for="amount">Amount (SGD)</label>
+    <input type="number" id="amount" placeholder="Amount (SGD)" step="0.01" min="0.01" value="10.00">
+
+    <label for="reference">Reference (optional, shown to recipient)</label>
+    <input type="text" id="reference" placeholder="Reference (optional)" maxlength="25">
+
+    <button id="go" onclick="generateQR()">Generate QR Code</button>
+
+    <div id="result"></div>
+
+    <script>
+        async function generateQR() {
+            const type = document.getElementById('type').value;
+            const recipient = document.getElementById('recipient').value.trim();
+            const amount = document.getElementById('amount').value;
+            const reference = document.getElementById('reference').value.trim();
+            const btn = document.getElementById('go');
+            const resultDiv = document.getElementById('result');
+
+            btn.disabled = true;
+            resultDiv.innerHTML = '<p>Generating...</p>';
+
+            try {
+                const body = { amount, reference };
+                if (type === 'UEN') {
+                    body.uen = recipient;
+                } else {
+                    body.recipientIdentifierType = 'MOBILE';
+                    body.recipientIdentifier = recipient;
+                }
+
+                const response = await fetch('/api/generate-qr', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Unknown error');
+
+                resultDiv.innerHTML = `
+                    <p class="ok">Scan with any banking app to pay</p>
+                    <img src="${data.qrImage}" alt="PayNow QR Code">
+                    <p><strong>S$${Number(amount).toFixed(2)}</strong> &rarr; ${recipient} (${type})</p>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

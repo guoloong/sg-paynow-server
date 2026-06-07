@@ -1,0 +1,37 @@
+{
+  "name": "sg-paynow-server",
+  "version": "2.0.1",
+  "description": "Express server that generates Singapore PayNow QR codes. The PayNow EMVCo string builder is bundled in (vendored from the former sg-paynow-code package).",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "test": "node --import tsx --test src/paynow/*.test.ts"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "qrcode": "^1.5.3"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^18.16.3",
+    "@types/qrcode": "^1.5.5",
+    "tsx": "^4.19.0",
+    "typescript": "^5.0.4"
+  },
+  "keywords": [
+    "paynow",
+    "singapore",
+    "qr",
+    "sgqr",
+    "emvco"
+  ],
+  "license": "MIT"
+}
